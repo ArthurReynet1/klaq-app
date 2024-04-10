@@ -1,15 +1,23 @@
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { HandThumbUpIcon } from '@heroicons/react/24/solid';
 import { Button, EventList, NewEventModal } from 'components';
+import { MainEvent } from 'interface/Event/main-event.interface';
 import { useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { useSelector } from 'react-redux';
 import { useSearchParams } from 'react-router-dom';
 import { useFetchMainEvents } from 'redux/MainEvent/hooks';
+import { getMainEventsByStatus } from 'redux/MainEvent/selectors';
 import {
-  getMainEvents,
-  getMainEventsByStatus,
-} from 'redux/MainEvent/selectors';
+  sortDoneEvents,
+  sortEvents,
+  sortLostEvents,
+  sortNewEvents,
+  sortOverdueEvents,
+  sortPastEvents,
+  sortPendingEvents,
+  sortReadyEvents,
+} from 'utils/eventsSorting';
 import { getQuotePipeValueV2 } from 'utils/quote';
 import { PageLayout } from '../../layouts';
 import { EventStatus } from '../../redux/Events/slices';
@@ -21,17 +29,6 @@ import {
   getThisWeekDates,
   getThisYearDates,
 } from '../../utils/utils';
-import { MainEvent } from 'interface/Event/main-event.interface';
-import {
-  sortEvents,
-  sortPendingEvents,
-  sortDoneEvents,
-  sortLostEvents,
-  sortNewEvents,
-  sortOverdueEvents,
-  sortPastEvents,
-  sortReadyEvents,
-} from 'utils/eventsSorting';
 
 enum FILTER_OPTIONS {
   THIS_WEEK = 'THIS_WEEK',
@@ -124,7 +121,7 @@ export const Events = () => {
 
   const mainEvents: MainEvent[] = Array.from(mainEventsSet);
 
-  const sortedNewEventsList = sortEvents(newEventsList);
+  const sortedNewEventsList = sortNewEvents(newEventsList);
   const sortedPendingEvents = sortPendingEvents(pendingEvents);
   const sortedEventsDoneList = sortDoneEvents(eventsDoneList);
   const sortedEventsReadyList = sortReadyEvents(eventsReadyList);
