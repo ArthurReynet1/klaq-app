@@ -6,7 +6,10 @@ import { useIntl } from 'react-intl';
 import { useSelector } from 'react-redux';
 import { useSearchParams } from 'react-router-dom';
 import { useFetchMainEvents } from 'redux/MainEvent/hooks';
-import { getMainEventsByStatus } from 'redux/MainEvent/selectors';
+import {
+  getMainEvents,
+  getMainEventsByStatus,
+} from 'redux/MainEvent/selectors';
 import { getQuotePipeValueV2 } from 'utils/quote';
 import { PageLayout } from '../../layouts';
 import { EventStatus } from '../../redux/Events/slices';
@@ -19,6 +22,16 @@ import {
   getThisYearDates,
 } from '../../utils/utils';
 import { MainEvent } from 'interface/Event/main-event.interface';
+import {
+  sortEvents,
+  sortPendingEvents,
+  sortDoneEvents,
+  sortLostEvents,
+  sortNewEvents,
+  sortOverdueEvents,
+  sortPastEvents,
+  sortReadyEvents,
+} from 'utils/eventsSorting';
 
 enum FILTER_OPTIONS {
   THIS_WEEK = 'THIS_WEEK',
@@ -60,15 +73,20 @@ export const Events = () => {
   const eventsDoneList = useSelector((state: any) =>
     getMainEventsByStatus(
       state,
-      EventStatus.DONE,
       EventStatus.INVOICE_OVERDUE,
-      EventStatus.WIN,
+      EventStatus.DONE,
       EventStatus.INVOICE_SENT,
+      EventStatus.WIN,
     ),
   );
 
   const eventsReadyList = useSelector((state: any) =>
-    getMainEventsByStatus(state, EventStatus.READY, EventStatus.QUOTE_ACCEPTED),
+    getMainEventsByStatus(
+      state,
+      EventStatus.QUOTE_ACCEPTED,
+      EventStatus.INVOICE_SENT,
+      EventStatus.READY,
+    ),
   );
 
   const lostEvents = useSelector((state: any) =>
@@ -78,10 +96,9 @@ export const Events = () => {
   const pendingEvents = useSelector((state: any) =>
     getMainEventsByStatus(
       state,
-      EventStatus.QUALIFICATION,
       EventStatus.QUOTE_REJECTED,
+      EventStatus.QUALIFICATION,
       EventStatus.QUOTE_SENT,
-      EventStatus.INVOICE_SENT,
     ),
   );
   const pastEvents = useSelector((state: any) =>
@@ -107,9 +124,18 @@ export const Events = () => {
 
   const mainEvents: MainEvent[] = Array.from(mainEventsSet);
 
+  const sortedNewEventsList = sortEvents(newEventsList);
+  const sortedPendingEvents = sortPendingEvents(pendingEvents);
+  const sortedEventsDoneList = sortDoneEvents(eventsDoneList);
+  const sortedEventsReadyList = sortReadyEvents(eventsReadyList);
+  const sortedLostEvents = sortLostEvents(lostEvents);
+  const sortedEvents = sortEvents(mainEvents);
+  const sortedPastEvents = sortPastEvents(pastEvents);
+  const sortedOverdueEvents = sortOverdueEvents(overdueEvents);
+
   const EVENTS = {
     NEW:
-      newEventsList && newEventsList.length
+      sortedNewEventsList && sortedNewEventsList.length
         ? getSubEventsFromPeriod(
             newEventsList.flatMap((e) => getSubEventsListFromMainEvents(e)),
             startDate,
@@ -118,7 +144,7 @@ export const Events = () => {
         : [],
 
     PENDING:
-      pendingEvents && pendingEvents.length
+      sortedPendingEvents && sortedPendingEvents.length
         ? getSubEventsFromPeriod(
             pendingEvents.flatMap((e) => getSubEventsListFromMainEvents(e)),
             startDate,
@@ -126,7 +152,7 @@ export const Events = () => {
           )
         : [],
     PAST:
-      pastEvents && pastEvents.length
+      sortedPastEvents && sortedPastEvents.length
         ? getSubEventsFromPeriod(
             pastEvents.flatMap((e) => getSubEventsListFromMainEvents(e)),
             startDate,
@@ -134,7 +160,7 @@ export const Events = () => {
           )
         : [],
     OVERDUE:
-      overdueEvents && overdueEvents.length
+      sortedOverdueEvents && sortedOverdueEvents.length
         ? getSubEventsFromPeriod(
             overdueEvents.flatMap((e) => getSubEventsListFromMainEvents(e)),
             startDate,
@@ -142,7 +168,7 @@ export const Events = () => {
           )
         : [],
     LOST:
-      lostEvents && lostEvents.length
+      sortedLostEvents && sortedLostEvents.length
         ? getSubEventsFromPeriod(
             lostEvents.flatMap((e) => getSubEventsListFromMainEvents(e)),
             startDate,
@@ -150,7 +176,7 @@ export const Events = () => {
           )
         : [],
     DONE:
-      eventsDoneList && eventsDoneList.length
+      sortedEventsDoneList && sortedEventsDoneList.length
         ? getSubEventsFromPeriod(
             eventsDoneList.flatMap((e) => getSubEventsListFromMainEvents(e)),
             startDate,
@@ -158,7 +184,7 @@ export const Events = () => {
           )
         : [],
     READY:
-      eventsReadyList && eventsReadyList.length
+      sortedEventsReadyList && sortedEventsReadyList.length
         ? getSubEventsFromPeriod(
             eventsReadyList.flatMap((e) => getSubEventsListFromMainEvents(e)),
             startDate,
@@ -166,7 +192,7 @@ export const Events = () => {
           )
         : [],
     ALL:
-      mainEvents && mainEvents.length
+      sortedEvents && sortedEvents.length
         ? getSubEventsFromPeriod(
             mainEvents.flatMap((e) => getSubEventsListFromMainEvents(e)),
             startDate,
